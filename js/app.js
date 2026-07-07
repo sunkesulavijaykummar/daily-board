@@ -66,8 +66,10 @@
     }
     function dayBlocks(s) {
       const l = dayLog(s);
+      /* Use custom schedule template if user has built one */
+      const tpl = (state.schedule && state.schedule.length) ? state.schedule : BLOCKS;
       if (!Array.isArray(l.blocks) || !l.blocks.length) {
-        l.blocks = BLOCKS.map(b => ({ ...b, sub: Array.isArray(b.sub) ? b.sub.map(x => [...x]) : [] }));
+        l.blocks = tpl.map(b => ({ ...b, sub: Array.isArray(b.sub) ? b.sub.map(x => [...x]) : [] }));
       }
       return l.blocks;
     }
@@ -685,5 +687,19 @@
       renderAll();
     };
     window.getLocalState = function () { return state; };
+
+    /* ── Schedule Builder bridge (used by js/schedule-builder.js) ── */
+    window.getScheduleTemplate = function () {
+      return (state.schedule && state.schedule.length) ? state.schedule : BLOCKS;
+    };
+    window.saveScheduleTemplate = function (blocks) {
+      /* Pass null to reset to built-in default */
+      state.schedule = (blocks && blocks.length) ? blocks : null;
+      persist();
+      /* Clear per-day cached blocks so new template applies */
+      Object.values(state.logs).forEach(l => { delete l.blocks; });
+      renderAll();
+      toast(blocks ? '✓ Your schedule is live on all new days' : '↺ Reset to default schedule');
+    };
 
     renderAll();
