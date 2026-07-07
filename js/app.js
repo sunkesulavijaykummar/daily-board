@@ -481,7 +481,7 @@
     }
 
     /* ════════════════ WIRING ════════════════ */
-    function renderAll() { renderHeader(); renderWeekStrip(); renderBlocks(); renderSubjOptions(); renderSessions(); renderSubjects(); renderReports(); renderJournal(); }
+    function renderAll() { renderHeader(); renderWeekStrip(); renderBlocks(); renderSubjOptions(); renderSessions(); renderSubjects(); renderReports(); renderJournal(); if (window.updateSetupPrompt) window.updateSetupPrompt(); }
 
     /* Nav tab switching */
     function switchTab(name) {

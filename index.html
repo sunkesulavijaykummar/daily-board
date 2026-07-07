@@ -178,7 +178,23 @@
               </button>
             </div>
           </div>
+
+          <!-- ══ FIRST-TIME SETUP PROMPT — hidden once user has built their schedule ══ -->
+          <div class="setup-prompt" id="setupPrompt" style="display:none">
+            <div class="setup-prompt-icon">📋</div>
+            <div class="setup-prompt-body">
+              <div class="setup-prompt-title">Welcome! Build your own daily schedule first</div>
+              <div class="setup-prompt-sub">Everyone's day is different — whether you work, study, exercise or rest. Create your own blocks so the board reflects <em>your</em> real routine.</div>
+            </div>
+            <button class="setup-prompt-cta" id="setupPromptBtn">
+              Build My Schedule
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <!-- END FIRST-TIME SETUP PROMPT -->
+
           <div class="blocks" id="blocks"></div>
+
 
 
           <!-- Study logger -->
