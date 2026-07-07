@@ -64,9 +64,21 @@
       const today = parse(iso(new Date()));
       return d < today && hasRecordedDayData(s);
     }
+    /* Is this a brand-new user who has never set up a schedule or logged anything? */
+    function isNewUser() {
+      if (state.schedule && state.schedule.length) return false; // has custom schedule
+      const hasAnyActivity = Object.values(state.logs || {}).some(l =>
+        (Array.isArray(l.sessions) && l.sessions.some(x => +x.hours > 0)) ||
+        Object.values(l.done || {}).some(Boolean)
+      );
+      return !hasAnyActivity;
+    }
+
     function dayBlocks(s) {
       const l = dayLog(s);
-      /* Use custom schedule template if user has built one */
+      /* Brand-new user with no schedule set → show empty so setup prompt is visible */
+      if (isNewUser()) return [];
+      /* Existing user: use their custom schedule, or fall back to built-in BLOCKS */
       const tpl = (state.schedule && state.schedule.length) ? state.schedule : BLOCKS;
       if (!Array.isArray(l.blocks) || !l.blocks.length) {
         l.blocks = tpl.map(b => ({ ...b, sub: Array.isArray(b.sub) ? b.sub.map(x => [...x]) : [] }));
@@ -689,8 +701,11 @@
     window.getLocalState = function () { return state; };
 
     /* ── Schedule Builder bridge (used by js/schedule-builder.js) ── */
+    window.isNewUser = isNewUser; /* expose for builder */
     window.getScheduleTemplate = function () {
-      return (state.schedule && state.schedule.length) ? state.schedule : BLOCKS;
+      if (state.schedule && state.schedule.length) return state.schedule;
+      if (isNewUser()) return []; /* new user: open builder blank so they build their own */
+      return BLOCKS; /* returning user without custom schedule: show built-in as starting point */
     };
     window.saveScheduleTemplate = function (blocks) {
       /* Pass null to reset to built-in default */
