@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, applyActionCode } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 /* ═══════════════════════════════════════════════════════════════════
    STEP 1 — PASTE YOUR FIREBASE CONFIG HERE
@@ -17,31 +16,22 @@ const firebaseConfig = {
 };
 /* ═══════════════════════════════════════════════════════════════════ */
 
+const DASHBOARD_URL = "dashboard.html";
+
 const body = document.body;
 const setView = s => { body.className = s; };
 const el = id => document.getElementById(id);
 const showErr = m => { const e = el("gerr"); if (e) { e.textContent = m || ""; e.style.color = "var(--miss)"; } };
 
 const configured = !firebaseConfig.apiKey.startsWith("PASTE");
-let auth, db, unsub = null, saveTimer = null, mode = "login";
+let auth, mode = "login";
+
+/* Verification links open THIS page directly (no separate Firebase-hosted tab) */
+const actionCodeSettings = { url: window.location.origin + window.location.pathname, handleCodeInApp: true };
 
 function toLogin() { setView("need-login"); if (configured && el("gsubmit")) el("gsubmit").disabled = false; }
 
-function enterApp(user) {
-  const w = el("uwho"); if (w) w.innerHTML = "Signed in as <b>" + user.email + "</b>";
-  const dw = el("drawer-who"); if (dw) dw.textContent = user.email;
-  setView("app-ready");
-  const ref = doc(db, "users", user.uid);
-  if (unsub) unsub();
-  unsub = onSnapshot(ref, snap => {
-    if (snap.metadata.hasPendingWrites) return;
-    if (snap.exists()) { window.applyRemoteState(snap.data()); }
-    else { const st = window.getLocalState(); window.applyRemoteState(st); setDoc(ref, { subjects: st.subjects, logs: st.logs, updated: Date.now() }); }
-  }, () => { const b = el("usync"); if (b) b.textContent = "offline"; });
-}
-
 function showVerifyGate(user) {
-  if (unsub) { unsub(); unsub = null; }
   const vm = el("vmsg");
   if (vm) vm.innerHTML = "Verify <b>" + user.email + "</b> to continue. Open the link we emailed you (check spam too), then tap the button below. Didn't get one? Resend it.";
   const ve = el("verr"); if (ve) ve.textContent = "";
@@ -51,38 +41,43 @@ function showVerifyGate(user) {
 if (!configured) {
   toLogin();
   const note = el("gnote");
-  if (note) note.innerHTML = "<b style='color:#f4a935'>Setup needed for login.</b> Paste your Firebase config into index.html (STEP 1 in the code below — full steps in the README). Or just look around first:";
+  if (note) note.textContent = "Setup needed for login. Paste your Firebase config into js/auth.js.";
   if (el("gsubmit")) el("gsubmit").disabled = true;
-  const prev = document.createElement("div");
-  prev.className = "gforgot"; prev.style.marginTop = "12px";
-  prev.innerHTML = '<a id="gpreview">Preview without login →</a>';
-  const note2 = el("gnote"); if (note2) note2.after(prev);
-  const pv = el("gpreview");
-  if (pv) pv.addEventListener("click", () => {
-    setView("app-ready");
-    const w = el("uwho"); if (w) w.textContent = "Preview — saved on this device only";
-    const s = el("usync"); if (s) s.textContent = "not synced";
-    [el("signout"), el("signout2")].forEach(b => { if (b) b.textContent = "Back to login"; });
-  });
 } else {
   const app = initializeApp(firebaseConfig);
-  auth = getAuth(app); db = getFirestore(app);
-
-  window.saveToCloud = function (st) {
-    if (!auth.currentUser) return;
-    const bar = el("usync"); if (bar) bar.textContent = "saving…";
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      setDoc(doc(db, "users", auth.currentUser.uid), { subjects: st.subjects, logs: st.logs, updated: Date.now() })
-        .then(() => { if (bar) bar.textContent = "✓ synced"; })
-        .catch(() => { if (bar) bar.textContent = "offline — will sync"; });
-    }, 600);
-  };
+  auth = getAuth(app);
 
   onAuthStateChanged(auth, user => {
-    if (user) { if (user.emailVerified) enterApp(user); else showVerifyGate(user); }
-    else { if (unsub) { unsub(); unsub = null; } toLogin(); }
+    if (user) {
+      if (user.emailVerified) window.location.href = DASHBOARD_URL;
+      else showVerifyGate(user);
+    } else {
+      toLogin();
+    }
   });
+
+  handleVerificationLink();
+}
+
+/* Land verification clicks straight on this page instead of a separate Firebase tab,
+   then continue on to the dashboard automatically. */
+async function handleVerificationLink() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("mode") !== "verifyEmail" || !params.get("oobCode")) return;
+  const oobCode = params.get("oobCode");
+  window.history.replaceState({}, document.title, window.location.pathname);
+  try {
+    await applyActionCode(auth, oobCode);
+    if (auth.currentUser) {
+      await auth.currentUser.reload();
+      if (auth.currentUser.emailVerified) { window.location.href = DASHBOARD_URL; return; }
+    }
+    toLogin();
+    const note = el("gnote"); if (note) note.textContent = "Email verified — log in below to continue.";
+  } catch (err) {
+    toLogin();
+    showErr("That verification link is invalid or expired. Log in and resend it from there.");
+  }
 }
 
 function applyMode() {
@@ -90,10 +85,12 @@ function applyMode() {
     el("gtitle").textContent = "Welcome back"; el("gsubmit").textContent = "Log in";
     el("gtoggle-text").textContent = "New here? "; el("gtoggle-link").textContent = "Create one";
     el("gpass").setAttribute("autocomplete", "current-password");
+    if (el("gtagline")) el("gtagline").textContent = "Log in to reach your board on any device, always in sync.";
   } else {
     el("gtitle").textContent = "Create your board"; el("gsubmit").textContent = "Create account";
     el("gtoggle-text").textContent = "Already have an account? "; el("gtoggle-link").textContent = "Log in";
     el("gpass").setAttribute("autocomplete", "new-password");
+    if (el("gtagline")) el("gtagline").textContent = "Free to start. Private by default. Yours to keep.";
   }
   const e = el("gerr"); if (e) e.textContent = "";
 }
@@ -106,7 +103,7 @@ async function doAuth() {
   el("gsubmit").disabled = true;
   try {
     if (mode === "login") { await signInWithEmailAndPassword(auth, e, p); }
-    else { const cred = await createUserWithEmailAndPassword(auth, e, p); await sendEmailVerification(cred.user); }
+    else { const cred = await createUserWithEmailAndPassword(auth, e, p); await sendEmailVerification(cred.user, actionCodeSettings); }
   } catch (err) { showErr(friendly(err.code)); el("gsubmit").disabled = false; }
 }
 
@@ -119,11 +116,6 @@ if (el("gsubmit")) el("gsubmit").addEventListener("click", doAuth);
 if (el("gpass")) el("gpass").addEventListener("keydown", ev => { if (ev.key === "Enter") doAuth(); });
 if (el("gemail")) el("gemail").addEventListener("keydown", ev => { if (ev.key === "Enter") el("gpass").focus(); });
 
-// Both sign-out buttons
-[el("signout"), el("signout2")].forEach(btn => {
-  if (btn) btn.addEventListener("click", () => { if (auth) signOut(auth); else setView("need-login"); });
-});
-
 if (el("gforgot-link")) el("gforgot-link").addEventListener("click", async () => {
   if (!configured) return;
   const e = (el("gemail").value || "").trim();
@@ -133,12 +125,12 @@ if (el("gforgot-link")) el("gforgot-link").addEventListener("click", async () =>
 });
 
 if (el("vcheck")) el("vcheck").addEventListener("click", async () => {
-  if (!auth || !auth.currentUser) { setView("need-login"); return; }
+  if (!auth || !auth.currentUser) { toLogin(); return; }
   const ve = el("verr"); if (ve) { ve.style.color = "var(--chalk-dim)"; ve.textContent = "Checking…"; }
   el("vcheck").disabled = true;
   try {
     await auth.currentUser.reload();
-    if (auth.currentUser.emailVerified) { await auth.currentUser.getIdToken(true); if (ve) ve.textContent = ""; enterApp(auth.currentUser); }
+    if (auth.currentUser.emailVerified) { window.location.href = DASHBOARD_URL; return; }
     else if (ve) { ve.style.color = "var(--miss)"; ve.textContent = "Not verified yet — open the link in your email first, then tap again."; }
   } catch (err) { if (ve) { ve.style.color = "var(--miss)"; ve.textContent = "Couldn't check just now — try again in a moment."; } }
   el("vcheck").disabled = false;
@@ -147,7 +139,7 @@ if (el("vcheck")) el("vcheck").addEventListener("click", async () => {
 if (el("vresend")) el("vresend").addEventListener("click", async () => {
   if (!auth || !auth.currentUser) return;
   const ve = el("verr");
-  try { await sendEmailVerification(auth.currentUser); if (ve) { ve.style.color = "var(--lime)"; ve.textContent = "Sent again — check your inbox and spam folder."; } }
+  try { await sendEmailVerification(auth.currentUser, actionCodeSettings); if (ve) { ve.style.color = "var(--lime)"; ve.textContent = "Sent again — check your inbox and spam folder."; } }
   catch (err) { if (ve) { ve.style.color = "var(--miss)"; ve.textContent = friendly(err.code); } }
 });
 

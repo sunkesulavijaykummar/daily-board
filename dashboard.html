@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Daily Board — Study &amp; Schedule ERP</title>
+  <meta name="description"
+    content="Vijay's personal daily study and schedule tracker. Track blocks, log study sessions, run Pomodoro timers, and analyse reports.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="icon" type="image/svg+xml" href="logo-monogram.svg">
+
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+
+<body class="booting">
+
+  <div id="boot">Opening your board…</div>
+
+  <!-- ═══ MAIN APP ═══ -->
+  <div class="wrap">
+
+    <!-- ══ STICKY NAVBAR ══ -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-inner">
+
+        <!-- Logo -->
+        <div class="nav-logo">
+          <img src="logo-monogram.svg" class="logo-icon" alt="The Daily Board" width="38" height="38"
+            style="border-radius:9px">
+          <div class="logo-text">
+            <span class="logo-title">The Daily Board</span>
+            <span class="logo-sub">Study &amp; Schedule ERP</span>
+          </div>
+        </div>
+
+        <!-- Desktop nav links -->
+        <div class="nav-links">
+          <button class="nav-link on" data-tab="today">Today</button>
+          <button class="nav-link" data-tab="subjects">Subjects</button>
+          <button class="nav-link" data-tab="reports">Reports</button>
+          <button class="nav-link" data-tab="data">Excel &amp; Sync</button>
+        </div>
+
+        <!-- User info -->
+        <div class="nav-user">
+          <span class="nav-sync" id="usync">✓ synced</span>
+          <span class="nav-who" id="uwho">Signed in</span>
+          <button class="signout" id="signout">Sign out</button>
+        </div>
+
+        <!-- Hamburger -->
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">☰</button>
+      </div>
+
+      <!-- Mobile drawer -->
+      <div class="nav-drawer" id="navDrawer">
+        <button class="drawer-link on" data-tab="today">📅 Today</button>
+        <button class="drawer-link" data-tab="subjects">📚 Subjects</button>
+        <button class="drawer-link" data-tab="reports">📊 Reports</button>
+        <button class="drawer-link" data-tab="data">💾 Excel &amp; Sync</button>
+        <div class="drawer-divider"></div>
+        <div class="drawer-user">
+          <div class="drawer-user-info" id="drawer-who">Signed in</div>
+          <button class="signout" id="signout2">Sign out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ══ BOARD FRAME ══ -->
+    <div class="frame">
+      <div class="board">
+
+        <!-- HEADER -->
+        <div class="head">
+          <div class="head-left">
+            <div class="head-eyebrow">consistency &gt; intensity</div>
+            <div class="head-tagline">Teacher by morning · learner by evening — Vijay's study &amp; schedule ERP</div>
+          </div>
+          <div class="datebox">
+            <div class="dow" id="dow">—</div>
+            <div class="full" id="fulldate">—</div>
+            <div class="picker">
+              <input type="date" id="datePick">
+              <button class="today-btn" id="todayBtn">Today</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- METRIC STRIP -->
+        <div class="strip">
+          <div class="metric">
+            <div class="k" id="mAdh">0%</div>
+            <div class="l">Day on track</div>
+          </div>
+          <div class="metric">
+            <div class="k" id="mHrs">0.0</div>
+            <div class="l">Study hours</div>
+          </div>
+          <div class="metric">
+            <div class="k" id="mTgt">0%</div>
+            <div class="l">Target reached</div>
+          </div>
+          <div class="metric tally">
+            <div class="tallymarks" id="mStreak">—</div>
+            <div class="l">Day streak</div>
+          </div>
+        </div>
+
+        <!-- ════ TODAY ════ -->
+        <div class="panel" id="p-today">
+
+          <!-- Week at a glance -->
+          <div class="week-strip-wrap">
+            <div class="sec-h" style="margin-bottom:8px">Week at a Glance</div>
+            <div class="week-strip" id="weekStrip"></div>
+          </div>
+
+          <div class="sec-h-row">
+            <div>
+              <div class="sec-h">Your day, block by block</div>
+              <div class="sec-sub">Tick each block as you finish it. Your streak grows on any day you log study.</div>
+            </div>
+            <div class="sec-h-btns">
+              <button class="sb-open-btn" id="sbOpenBtn" aria-label="Build your own schedule">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                Setup Schedule
+              </button>
+              <button class="edit-sch-btn" id="editModeBtn" aria-pressed="false">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Schedule
+              </button>
+            </div>
+          </div>
+
+          <!-- ══ FIRST-TIME SETUP PROMPT — hidden once user has built their schedule ══ -->
+          <div class="setup-prompt" id="setupPrompt" style="display:none">
+            <div class="setup-prompt-icon">📋</div>
+            <div class="setup-prompt-body">
+              <div class="setup-prompt-title">Welcome! Build your own daily schedule first</div>
+              <div class="setup-prompt-sub">Everyone's day is different — whether you work, study, exercise or rest. Create your own blocks so the board reflects <em>your</em> real routine.</div>
+            </div>
+            <button class="setup-prompt-cta" id="setupPromptBtn">
+              Build My Schedule
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <!-- END FIRST-TIME SETUP PROMPT -->
+
+          <div class="blocks" id="blocks"></div>
+
+
+
+          <!-- Study logger -->
+          <div class="study-wrap">
+            <div class="sec-h" style="margin-bottom:2px">Log a study session</div>
+            <div class="sec-sub" style="margin-bottom:12px">This fills the 1:00–10:00 PM block — the heart of the
+              system.</div>
+            <div class="logger">
+              <div class="fld"><label for="lgSubj">Subject</label><select id="lgSubj"></select></div>
+              <div class="fld"><label for="lgHrs">Hours</label><input type="number" id="lgHrs" min="0" max="16"
+                  step="0.25" placeholder="1.5"></div>
+              <div class="fld note-fld"><label for="lgNote">What did you cover?</label><input type="text" id="lgNote"
+                  placeholder="e.g. Chapter 4 — revised &amp; tested"></div>
+              <button class="add-btn" id="lgAdd">Add</button>
+            </div>
+            <div class="sessions" id="sessions"></div>
+          </div>
+
+          <!-- Daily journal -->
+          <div class="journal-wrap" id="journalWrap">
+            <div class="journal-toggle" id="journalToggle" role="button" aria-expanded="false">
+              <span class="j-title">📝 Daily Reflection</span>
+              <span class="j-arrow">▾</span>
+            </div>
+            <div class="journal-body">
+              <textarea id="journalText"
+                placeholder="What went well today? What can you improve? Any insights from your study session…"
+                rows="4"></textarea>
+              <div class="journal-footer">
+                <span class="journal-hint">Saved per day · exported with your Excel backup</span>
+                <button class="jsave" id="journalSave">Save note</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SUBJECTS ════ -->
+        <div class="panel hide" id="p-subjects">
+          <div class="sec-h">Your study subjects</div>
+          <div class="sec-sub">Rename these to what you actually study. Set a daily hour-target for each — that's what
+            the reports measure you against. Click the colour square to pick any colour.</div>
+          <div class="subj-grid" id="subjGrid"></div>
+          <button class="addsub" id="addSub">+ Add a subject</button>
+        </div>
+
+        <!-- ════ REPORTS ════ -->
+        <div class="panel hide" id="p-reports">
+          <div class="rep-tabs">
+            <button class="rtab on" data-rep="daily">Daily</button>
+            <button class="rtab" data-rep="weekly">Weekly</button>
+            <button class="rtab" data-rep="monthly">Monthly</button>
+          </div>
+          <div class="rnav">
+            <button class="arw" id="rPrev">‹</button>
+            <div class="lbl" id="rLbl">—</div>
+            <button class="arw" id="rNext">›</button>
+          </div>
+          <div id="repBody"></div>
+        </div>
+
+        <!-- ════ DATA ════ -->
+        <div class="panel hide" id="p-data">
+          <div class="sec-h">Excel backup &amp; data</div>
+          <div class="sec-sub">Your data lives in the cloud and syncs across every device you log in on. Export to Excel
+            any time for a backup — or to feed the optional GitHub report runner.</div>
+          <div class="data-actions">
+            <button class="dbtn" id="btnExport">
+              <span class="dt">⬇ Export to Excel</span>
+              <span class="dd">Download study-log.xlsx — full backup including journal notes.</span>
+            </button>
+            <button class="dbtn" id="btnImport">
+              <span class="dt">⬆ Import from Excel</span>
+              <span class="dd">Restore or move your data from a study-log.xlsx file.</span>
+            </button>
+          </div>
+          <input type="file" id="fileIn" accept=".xlsx,.xls" style="display:none">
+
+          <div class="note-box">
+            <b>How the GitHub live runner uses this file</b>
+            <ol class="steps">
+              <li>Click <b>Export to Excel</b> whenever you finish a day (or a week).</li>
+              <li>Put <code>study-log.xlsx</code> into the <code>data/</code> folder of your GitHub repo and commit it.
+              </li>
+              <li>The GitHub Action wakes up daily, reads the Excel file, and rebuilds your daily / weekly / monthly
+                report pages automatically.</li>
+              <li>Open <code>your-name.github.io/daily-board/</code> to see this page, and <code>/reports/</code> for
+                auto-generated reports.</li>
+            </ol>
+            <div style="margin-top:10px">The <b>Phase 2 kit</b> (workflow + report generator + README) is delivered
+              alongside this file — set it up once and reports build themselves.</div>
+          </div>
+
+          <div style="margin-top:14px">
+            <button class="dbtn danger" id="btnReset" style="width:100%">
+              <span class="dt">⟲ Reset all data</span>
+              <span class="dd">Wipes every logged day and restores default subjects. Cannot be undone — export
+                first.</span>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /board -->
+      <div class="tray">
+        <div class="piece" style="background:var(--gold)"></div>
+        <div class="piece" style="background:var(--blue)"></div>
+        <div class="piece" style="background:var(--lime)"></div>
+        <div class="piece" style="background:var(--pink)"></div>
+      </div>
+    </div><!-- /frame -->
+
+    <div class="foot">Built for the long game — small honest days, stacked.</div>
+  </div><!-- /wrap -->
+
+  <!-- ═══ POMODORO FAB ═══ -->
+  <div class="pomo-fab">
+    <button class="pomo-btn" id="pomoBtn" title="Pomodoro Timer" aria-label="Open fullscreen Pomodoro timer">⏱</button>
+  </div>
+
+  <!-- ═══ POMODORO FULLSCREEN ═══ -->
+  <div class="pomo-fs" id="pomoFS" role="dialog" aria-modal="true" aria-label="Pomodoro Timer">
+
+    <!-- Header -->
+    <div class="pomo-fs-head">
+      <img src="logo-monogram.svg" width="28" height="28" style="border-radius:7px;opacity:.7" alt="">
+      <span class="pomo-fs-title">Pomodoro Timer</span>
+    </div>
+
+    <!-- Close -->
+    <button class="pomo-fs-close" id="pomoFSClose" aria-label="Close Pomodoro">✕</button>
+
+    <!-- Mode tabs -->
+    <div class="pomo-fs-modes">
+      <button class="pomo-fs-mode on" data-min="25">🎯 Focus 25m</button>
+      <button class="pomo-fs-mode" data-min="5">☕ Short 5m</button>
+      <button class="pomo-fs-mode" data-min="15">🛌 Long 15m</button>
+    </div>
+
+    <!-- Big ring -->
+    <div class="pomo-fs-ring">
+      <svg viewBox="0 0 200 200">
+        <circle class="fs-ring-glow" id="fsRingGlow" cx="100" cy="100" r="86" stroke-dasharray="540.4"
+          stroke-dashoffset="0" />
+        <circle class="fs-ring-bg" cx="100" cy="100" r="86" />
+        <circle class="fs-ring-fg" id="fsRingFg" cx="100" cy="100" r="86" stroke-dasharray="540.4"
+          stroke-dashoffset="0" />
+      </svg>
+      <div class="pomo-fs-time">
+        <div class="pomo-fs-digits" id="fsDisplay">25:00</div>
+        <div class="pomo-fs-label" id="fsLabel">Focus</div>
+        <div class="pomo-fs-sessions" id="fsCount">🍅 0 sessions</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="pomo-fs-ctrls">
+      <button class="pomo-fs-reset" id="pomoFSReset">↺ Reset</button>
+      <button class="pomo-fs-start" id="pomoFSStart">Start</button>
+    </div>
+
+    <div class="pomo-fs-hint">Space — start / pause &nbsp;·&nbsp; R — reset &nbsp;·&nbsp; Esc — close</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       TIMETABLE BUILDER MODAL
+       Remove this block + the <script> below + the sbOpenBtn above
+       + sec-h-btns CSS + .sb-* CSS to fully uninstall the feature
+  ══════════════════════════════════════════════════════ -->
+  <div class="sb-backdrop" id="sb-modal" role="dialog" aria-modal="true" aria-label="Schedule Builder">
+    <div class="sb-panel">
+
+      <!-- Header -->
+      <div class="sb-header">
+        <div class="sb-header-left">
+          <div class="sb-modal-title">📋 Build Your Schedule</div>
+          <div class="sb-modal-sub">Add, edit and drag to reorder your daily blocks. Anyone can set up their own routine — saved to your account.</div>
+        </div>
+        <button class="sb-close-btn" id="sb-close" aria-label="Close builder">✕</button>
+      </div>
+
+      <!-- Body: scrollable block list -->
+      <div class="sb-body">
+        <div class="sb-list" id="sb-list"></div>
+        <button class="sb-add-btn" id="sb-add-block">+ Add Block</button>
+      </div>
+
+      <!-- Footer -->
+      <div class="sb-footer" id="sb-footer-inner">
+        <div class="sb-err" id="sb-err"></div>
+        <button class="sb-reset-btn" id="sb-reset">↺ Reset to Default</button>
+        <div class="sb-footer-right">
+          <button class="sb-cancel-btn" id="sb-cancel">Cancel</button>
+          <button class="sb-save-btn" id="sb-save">✓ Save &amp; Apply</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- END TIMETABLE BUILDER MODAL -->
+
+  <!-- ══════════════════════════════════════════════════════
+       MAIN APP SCRIPT
+  ══════════════════════════════════════════════════════ -->
+  <script src="js/app.js?v=3" defer></script>
+
+  <!-- ══════════════════════════════════════════════════════
+       LOGIN + CLOUD SYNC  (Firebase — keep your existing config)
+  ══════════════════════════════════════════════════════ -->
+  <script type="module" src="js/dashboard-auth.js"></script>
+
+  <!-- ══════════════════════════════════════════════════════
+       TIMETABLE BUILDER — remove this line + modal HTML above
+       + sbOpenBtn button + .sb-* CSS to fully uninstall
+  ══════════════════════════════════════════════════════ -->
+  <script src="js/schedule-builder.js?v=3" defer></script>
+
+</body>
+
+</html>

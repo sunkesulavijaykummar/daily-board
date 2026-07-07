@@ -49,7 +49,7 @@
     /* ── log helpers ── */
     function dayLog(s) { if (!state.logs[s]) state.logs[s] = { done: {}, sessions: [] }; return state.logs[s]; }
     function studyHours(s) { const l = state.logs[s]; if (!l || !l.sessions) return 0; return l.sessions.reduce((a, x) => a + (+x.hours || 0), 0); }
-    function adherence(s) { const l = state.logs[s]; if (!l) return 0; let d = 0; BLOCKS.forEach(b => { if (l.done && l.done[b.id]) d++; }); return Math.round(d / BLOCKS.length * 100); }
+    function adherence(s) { const l = state.logs[s]; if (!l) return 0; const blocks = dayBlocks(s); if (!blocks.length) return 0; let d = 0; blocks.forEach(b => { if (l.done && l.done[b.id]) d++; }); return Math.round(d / blocks.length * 100); }
     function targetTotal() { return state.subjects.reduce((a, s) => a + (+s.target || 0), 0); }
     function subjById(id) { return state.subjects.find(s => s.id === id); }
     function hasRecordedDayData(s) {
@@ -434,7 +434,7 @@
       Object.keys(state.logs).sort().forEach(ds => {
         const l = state.logs[ds];
         (l.sessions || []).forEach(s => { const su = subjById(s.subjectId); sess.push([ds, su ? su.name : "(removed)", +s.hours, s.note || ""]); });
-        BLOCKS.forEach(b => sched.push([ds, b.title, (l.done && l.done[b.id]) ? "Yes" : "No"]));
+        (l.blocks && l.blocks.length ? l.blocks : BLOCKS).forEach(b => sched.push([ds, b.title, (l.done && l.done[b.id]) ? "Yes" : "No"]));
         const h = studyHours(ds);
         summary.push([ds, +h.toFixed(2), t, adherence(ds), (t > 0 && h >= t) ? "Yes" : "No"]);
         if (l.journal) journal.push([ds, l.journal]);
@@ -694,6 +694,10 @@
       if (data) {
         if (Array.isArray(data.subjects) && data.subjects.length) state.subjects = data.subjects;
         state.logs = (data.logs && typeof data.logs === "object") ? data.logs : {};
+        if (Object.prototype.hasOwnProperty.call(data, "schedule")) {
+          state.schedule = Array.isArray(data.schedule) && data.schedule.length ? data.schedule : null;
+          Object.values(state.logs).forEach(l => { delete l.blocks; });
+        }
       }
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { }
       renderAll();

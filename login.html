@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in — The Daily Board</title>
+  <meta name="description" content="Log in or create your free account for The Daily Board.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="logo-monogram.svg">
+
+  <!-- External stylesheet (shared with the dashboard) -->
+  <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+
+<body class="booting">
+
+  <div id="boot">Opening…</div>
+
+  <!-- ═══ AUTH GATE ═══ -->
+  <div id="gate">
+    <div class="gcard">
+      <div class="gcard-logo">
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none">
+          <img src="logo-monogram.svg" width="30" height="30" alt="The Daily Board" style="border-radius:7px">
+          <span class="geyebrow">the daily board</span>
+        </a>
+      </div>
+      <h2 id="gtitle">Welcome back</h2>
+      <div class="gsub" id="gtagline">Log in to reach your board on any device, always in sync.</div>
+      <div class="gfield">
+        <label for="gemail">Email</label>
+        <input type="email" id="gemail" autocomplete="username" placeholder="you@example.com">
+      </div>
+      <div class="gfield">
+        <label for="gpass">Password</label>
+        <input type="password" id="gpass" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="gbtn" id="gsubmit">Log in</button>
+      <div class="gerr" id="gerr"></div>
+      <div class="gforgot"><a id="gforgot-link">Forgot password?</a></div>
+      <div class="gtoggle"><span id="gtoggle-text">New here? </span><a id="gtoggle-link">Create one</a></div>
+      <div class="gnote" id="gnote">No zero days. Small, honest days — stacked.</div>
+    </div>
+  </div>
+
+  <!-- ═══ VERIFY SCREEN ═══ -->
+  <div id="verify">
+    <div class="gcard">
+      <div class="vicon">✉️</div>
+      <span class="geyebrow">one more step</span>
+      <h2>Verify your email</h2>
+      <div class="gsub" id="vmsg">Open the link we emailed you, then tap continue.</div>
+      <button class="gbtn" id="vcheck">I've clicked the link — continue</button>
+      <div class="gerr" id="verr"></div>
+      <button class="vsecondary" id="vresend">Didn't get it? Resend the link</button>
+      <button class="vsecondary" id="vswitch">Use a different email</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
+
+</body>
+
+</html>
