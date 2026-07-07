@@ -7,7 +7,7 @@
      3. Remove <!-- TIMETABLE BUILDER MODAL --> in index.html
      4. Remove <!-- FIRST-TIME SETUP PROMPT --> in index.html
      5. Remove sbOpenBtn + setupPromptBtn buttons in index.html
-     6. Remove /* TIMETABLE BUILDER STYLES */ in css / style.css
+     6. Remove the TIMETABLE BUILDER STYLES block in css/style.css
 ════════════════════════════════════════════════════════════ */
   (function () {
     'use strict';
