@@ -32,6 +32,7 @@
     if (!state.subjects || !state.subjects.length) state.subjects = JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
     if (!state.logs) state.logs = {};
     let viewDate = iso(new Date());
+    let editMode = false; // global schedule edit toggle
 
     /* ── date helpers ── */
     function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
@@ -138,7 +139,7 @@
     /* Schedule blocks */
     function renderBlocks() {
       const l = dayLog(viewDate), wrap = document.getElementById("blocks");
-      const editable = canEditDay(viewDate);
+      const editable = editMode;
       wrap.innerHTML = "";
       const blocks = dayBlocks(viewDate);
       blocks.forEach((b, i) => {
@@ -545,6 +546,20 @@
         viewDate = iso(new Date()); repDate = iso(new Date());
         renderAll(); toast("Reset done");
       }
+    });
+
+    /* ════════════════ EDIT SCHEDULE TOGGLE ════════════════ */
+    document.getElementById("editModeBtn").addEventListener("click", () => {
+      editMode = !editMode;
+      const btn = document.getElementById("editModeBtn");
+      btn.classList.toggle("active", editMode);
+      btn.setAttribute("aria-pressed", editMode ? "true" : "false");
+      btn.innerHTML = editMode
+        ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Done'
+        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Schedule';
+      if (editMode) toast("Edit mode on — click ✏️ on any block to customise it");
+      else toast("Changes saved ✓");
+      renderBlocks();
     });
 
     /* ════════════════ POMODORO TIMER ════════════════ */

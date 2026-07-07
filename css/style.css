@@ -576,6 +576,61 @@
       margin-bottom: 14px;
     }
 
+    /* ═══════════════════════ EDIT SCHEDULE BUTTON ═══════════════════════ */
+    .sec-h-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .sec-h-row .sec-sub {
+      margin-bottom: 0;
+    }
+
+    .edit-sch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      background: transparent;
+      border: 1.5px solid var(--line);
+      color: var(--chalk-dim);
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: .18s;
+      flex-shrink: 0;
+      margin-top: 3px;
+      letter-spacing: .2px;
+    }
+
+    .edit-sch-btn svg {
+      flex-shrink: 0;
+      transition: transform .18s;
+    }
+
+    .edit-sch-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(244, 169, 53, .07);
+    }
+
+    .edit-sch-btn.active {
+      background: rgba(244, 169, 53, .13);
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(244, 169, 53, .10);
+    }
+
+    .edit-sch-btn.active svg {
+      transform: rotate(90deg);
+    }
+
     /* ═══════════════════════ SCHEDULE BLOCKS ═══════════════════════ */
     .blocks {
       display: flex;
